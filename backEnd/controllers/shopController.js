@@ -1,0 +1,70 @@
+import Shop from "../models/shop.js";
+import uploadOnCloudinary from "../utils/cloudinary.js";
+
+export const createOrEditShop = async (req, res) => {
+    try {
+        const { name, city, state, address } = req.body
+        let image;
+        if (req.file) {
+            image = await uploadOnCloudinary(req.file.path)
+        }
+        let shop = await Shop.findOne({ owner: req.userId });
+        if (!shop) {
+            shop = await Shop.create({
+                name, city, state, address, image, owner: req.userId
+            })
+        }
+        else {
+            shop = await Shop.findByIdAndUpdate(shop._id, {
+                name, city, state, address, image, owner: req.userId
+            }, { new: true })
+        }
+
+        await shop.populate("owner")
+        await shop.populate({
+            path: "items",
+            options: { sort: { updatedAt: -1 } }
+        });
+        return res.status(201).json({
+            message: "Shop Created",
+            shop
+        })
+
+    } catch (error) {
+        return res.status(500).json({ message: `Created Shop Error: ${error}` })
+
+    }
+}
+
+export const getMyShop = async (req, res) => {
+    try {
+        const shop = await Shop.findOne({ owner: req.userId }).populate("owner").populate({
+            path: "items",
+            options: { sort: { updatedAt: -1 } }
+        })
+        if (!shop)
+            return null;
+        else
+            return res.status(200).json(shop)
+    } catch (error) {
+        return res.status(500).json({ message: `Get My Shop  Error: ${error}` })
+
+    }
+}
+
+export const getShopByCity = async (req, res) => {
+    try {
+        const { city } = req.params;
+
+        const shops = await Shop.find({
+            city: { $regex: new RegExp(`^${city}$`, "i") }
+        }).populate("items")
+        if(!shops)
+            return res.status(400).json({meesage:"Shops Not found in Your City"})
+
+         return res.status(200).json(shops)
+    } catch (error) {
+        return res.status(500).json({ message: `Get Shops by City  Error: ${error}` })
+
+    }   
+}
