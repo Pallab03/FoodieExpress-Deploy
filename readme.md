@@ -243,13 +243,13 @@ npm start
 
 # 📌 **9. Screenshots**
 
-(Add UI screenshots here)
+
 
 ---
 
 # 📌 **10. Developer**
 
-👨‍💻 **Pallab**
+👨‍💻 **Pallab Saha**
 
 ---
 
